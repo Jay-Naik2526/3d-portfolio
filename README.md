@@ -2,8 +2,7 @@
 
 A fully immersive, 3D personal portfolio website built with **React**, **Three.js**, and **Vite**. This project features a futuristic holographic interface, interactive 3D elements, and a responsive design that works seamlessly across desktop and mobile devices.
 
-🔗 **Live Demo:** [https://jaynaik.tech](https://jaynaik.tech)
-
+🔗 **Live Demo:** www.jaynaik.tech
 ---
 
 ## ✨ Features
