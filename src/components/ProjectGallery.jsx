@@ -1,17 +1,15 @@
 import { useRef, useState, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Text, Image } from '@react-three/drei';
-import { easing } from 'maath'; // <--- CORRECTED LINE 4
+import { easing } from 'maath';
 import * as THREE from 'three';
 import { myProjects } from '../data'; 
 
 function HoloPanel({ project, position, rotation, scale = 1 }) {
-// ... rest of HoloPanel function remains the same ...
   const group = useRef();
   const [hovered, setHover] = useState(false);
 
   useFrame((state, delta) => {
-    // Hover Scale Effect
     easing.damp3(group.current.scale, hovered ? 1.15 * scale : 1 * scale, 0.2, delta);
   });
 
@@ -20,7 +18,6 @@ function HoloPanel({ project, position, rotation, scale = 1 }) {
       ref={group} 
       position={position} 
       rotation={rotation}
-      // Pass scale prop to resize everything at once
       scale={scale} 
       onPointerOver={() => { setHover(true); document.body.style.cursor = 'pointer'; }}
       onPointerOut={() => { setHover(false); document.body.style.cursor = 'grab'; }}
@@ -29,13 +26,10 @@ function HoloPanel({ project, position, rotation, scale = 1 }) {
         window.open(project.url, '_blank'); 
       }}
     >
-      {/* 1. BACKLIGHT (Makes image pop) */}
       <mesh position={[0, 0.5, 0.04]}>
         <planeGeometry args={[2.3, 1.4]} />
         <meshBasicMaterial color="white" side={THREE.FrontSide} />
       </mesh>
-
-      {/* 2. IMAGE (Solid, Bright) */}
       <Image 
         url={project.image} 
         transparent={false}
@@ -45,20 +39,14 @@ function HoloPanel({ project, position, rotation, scale = 1 }) {
         scale={[2.3, 1.4]} 
         position={[0, 0.5, 0.05]} 
       />
-
-      {/* 3. FRAME BACKING */}
       <mesh position={[0, 0.5, 0]}>
         <planeGeometry args={[2.5, 1.6]} />
         <meshBasicMaterial color="#00f3ff" transparent opacity={0.15} side={THREE.FrontSide} />
       </mesh>
-      
-      {/* 4. BORDER */}
       <mesh position={[0, 0.5, 0]}>
         <ringGeometry args={[1.4, 1.45, 4]} rotation={[0, 0, Math.PI / 4]} />
         <meshBasicMaterial color={hovered ? "#ffffff" : "#00f3ff"} side={THREE.FrontSide} toneMapped={false}/>
       </mesh>
-
-      {/* 5. TEXT (Clean separation from image) */}
       <group position={[0, -1.3, 0.1]}>
         <Text position={[0, 0.3, 0]} fontSize={0.2} color="white" anchorX="center">{project.title.toUpperCase()}</Text>
         <Text position={[0, 0, 0]} fontSize={0.1} color="#aaffff" anchorX="center" maxWidth={2.2} textAlign="center">{project.desc}</Text>
@@ -77,13 +65,14 @@ export default function ProjectGallery({ visible, controls }) {
   const { viewport, gl } = useThree();
   const isMobile = viewport.width < 7;
   
-  const radius = isMobile ? 3 : 6;
-  const panelScale = isMobile ? 0.7 : 1; 
+  // Calculate radius based on viewport width
+  // Ensures it fits within the screen bounds
+  const radius = isMobile ? Math.min(viewport.width * 0.4, 2.5) : 6;
+  const panelScale = isMobile ? 0.6 : 1; 
 
   if (!myProjects) return null;
   const count = myProjects.length;
 
-  // --- DRAG LOGIC ---
   useEffect(() => {
     const handleDown = (e) => {
       isDragging.current = true;
@@ -108,16 +97,12 @@ export default function ProjectGallery({ visible, controls }) {
   }, [gl]);
 
   useFrame((state, delta) => {
-    // Reveal Animation
     easing.damp3(groupRef.current.position, visible ? [0, 0, 0] : [0, -15, 0], 0.4, delta);
 
     if (visible) {
-      // Manual Button Control (Left/Right)
       if (controls && controls.x !== 0) {
           groupRef.current.rotation.y += controls.x * delta * 2;
-      } 
-      // Physics and Auto Spin
-      else {
+      } else {
          groupRef.current.rotation.y += velocity.current;
          if (!isDragging.current) {
             velocity.current *= 0.95;

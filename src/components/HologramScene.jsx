@@ -1,40 +1,55 @@
 import { OrbitControls, PerspectiveCamera, Stars } from '@react-three/drei';
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
-import { useThree } from '@react-three/fiber';
+import { useThree, useFrame } from '@react-three/fiber';
+import * as THREE from 'three';
 
 // Import all modular components
 import HologramCore from './HologramCore';
-import HomeHeader from './HomeHeader'; // <-- NEW IMPORT
+import HomeHeader from './HomeHeader'; 
 import AboutPanel from './AboutPanel';
 import ProjectGallery from './ProjectGallery';
 import SkillsCloud from './SkillsCloud';
 import ContactPanel from './ContactPanel';
 
 function SceneRig() {
-  const { viewport } = useThree();
-  const isMobile = viewport.width < 7;
+  const { camera, size } = useThree();
   
-  // Base Camera Z position (Pulled back for all content)
-  const cameraZ = isMobile ? 18 : 13; 
+  useFrame(() => {
+    const aspect = size.width / size.height;
+    const isMobile = size.width < 768;
+    
+    // Dynamic Z: Calculates distance based on narrowness of screen
+    const targetZ = isMobile ? 20 / aspect : 13; 
+    
+    // Clamp the max distance to 25 so it doesn't go too far on long phones
+    const finalZ = Math.min(targetZ, 25);
 
-  return <PerspectiveCamera makeDefault position={[0, 0, cameraZ]} />;
+    camera.position.lerp(new THREE.Vector3(0, 0, finalZ), 0.1); 
+    camera.updateProjectionMatrix();
+  });
+
+  return null; 
 }
 
 export default function HologramScene({ mode }) {
   return (
     <>
+      <PerspectiveCamera makeDefault position={[0, 0, 15]} />
       <SceneRig />
       
       <OrbitControls 
-        enableZoom={false} enablePan={false} maxPolarAngle={Math.PI / 1.8} 
-        autoRotate={mode === "HOME"} autoRotateSpeed={0.5}
+        enableZoom={false} 
+        enablePan={false} 
+        maxPolarAngle={Math.PI / 1.8} 
+        autoRotate={mode === "HOME"} 
+        autoRotateSpeed={0.5}
       />
 
       <color attach="background" args={['#000000']} />
       <Stars radius={50} count={3000} factor={4} fade speed={1} />
       
       {/* 1. HOME SCREEN COMPONENTS */}
-      <HomeHeader visible={mode === "HOME"} /> {/* <-- RENDER THE HEADER */}
+      <HomeHeader visible={mode === "HOME"} /> 
       <HologramCore visible={mode === "HOME"} /> 
       
       {/* 2. OTHER COMPONENTS */}

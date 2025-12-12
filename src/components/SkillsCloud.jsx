@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Text, Float } from '@react-three/drei';
-import { easing } from 'maath'; // <--- CORRECTED LINE 4
+import { easing } from 'maath';
 import { mySkills } from '../data'; 
 
 export default function SkillsCloud({ visible, controls }) {
@@ -15,15 +15,12 @@ export default function SkillsCloud({ visible, controls }) {
   if (!mySkills) return null;
 
   useFrame((state, delta) => {
-    // Reveal Animation
     easing.damp3(groupRef.current.scale, visible ? 1 : 0, 0.25, delta);
 
     if (visible) {
-        // MANUAL BUTTON CONTROL (Left/Right)
         if (controls && controls.x !== 0) {
             groupRef.current.rotation.y += controls.x * delta * 2;
         } else {
-            // Auto Rotate
             groupRef.current.rotation.y += delta * 0.05;
         }
     }
@@ -32,7 +29,6 @@ export default function SkillsCloud({ visible, controls }) {
   return (
     <group ref={groupRef}>
       {mySkills.map((skill, i) => {
-        // Helix Math (Responsive, avoids overlap)
         const count = mySkills.length;
         const angle = (i / count) * Math.PI * 2; 
         const x = Math.cos(angle) * radius;
@@ -42,8 +38,6 @@ export default function SkillsCloud({ visible, controls }) {
         return (
           <Float key={i} speed={2} rotationIntensity={0.5} floatIntensity={1}>
             <group position={[x, y, z]}>
-              
-              {/* 1. THE DIAMOND */}
               <mesh>
                 <octahedronGeometry args={[0.6, 0]} /> 
                 <meshStandardMaterial 
@@ -54,14 +48,10 @@ export default function SkillsCloud({ visible, controls }) {
                     toneMapped={false}
                 />
               </mesh>
-              
-              {/* 2. GLOW CORE */}
               <mesh>
                  <octahedronGeometry args={[0.2, 0]} />
                  <meshBasicMaterial color="white" />
               </mesh>
-
-              {/* 3. TEXT LABEL */}
               <Text 
                 position={[0, 0.8, 0]} 
                 fontSize={0.3} 
