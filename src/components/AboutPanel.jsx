@@ -24,10 +24,10 @@ function HexNode({ position, title, content, color = "#00f3ff", scale = 1, maxWi
           <meshBasicMaterial color={color} />
         </mesh>
         <group position={[0, 0.2, 0.1]}>
-          <Text position={[0, 0.8, 0]} fontSize={0.25} color={color} anchorX="center" fontWeight="bold">
+          <Text position={[0, 0.9, 0]} fontSize={0.28} color={color} anchorX="center" fontWeight="bold">
             {title}
           </Text>
-          <Text position={[0, 0, 0]} fontSize={0.16} color="white" anchorX="center" anchorY="middle" maxWidth={maxWidth} textAlign="center" lineHeight={1.3}>
+          <Text position={[0, 0, 0]} fontSize={0.18} color="white" anchorX="center" anchorY="middle" maxWidth={maxWidth} textAlign="center" lineHeight={1.4}>
             {content}
           </Text>
         </group>
@@ -40,15 +40,10 @@ export default function AboutPanel({ visible }) {
   const group = useRef();
   const { viewport } = useThree();
   
-  // --- ROBUST RESPONSIVE LOGIC ---
   const isMobile = viewport.width < 7;
-  
-  // Calculate dynamic positions based on available screen width
-  // 'vw' acts like a percentage of the 3D viewport width
   const vw = viewport.width; 
   const vh = viewport.height;
 
-  // Clamp values so they don't get too spread out on tablets or too squished on tiny phones
   const xSpread = isMobile ? Math.min(vw * 0.35, 2.0) : 4.5; 
   const ySpread = isMobile ? Math.min(vh * 0.35, 4.5) : 2.0;
 
@@ -59,13 +54,13 @@ export default function AboutPanel({ visible }) {
   });
 
   const layout = isMobile ? {
-      bio: [0, ySpread, 0],      // Top
-      edu: [0, -ySpread, 0],     // Bottom
-      lead: [-xSpread, -0.5, 0], // Left
-      tech: [xSpread, -0.5, 0],  // Right
+      bio: [0, ySpread, 0],      
+      edu: [0, -ySpread, 0],     
+      lead: [-xSpread, -0.5, 0], 
+      tech: [xSpread, -0.5, 0],  
       headerY: ySpread + 1.5,
-      nodeScale: 0.6,
-      textWidth: 2.0
+      nodeScale: 0.65,
+      textWidth: 2.1
   } : {
       bio: [-4.5, 2, 0],
       edu: [4.5, 2, 0],
@@ -85,12 +80,12 @@ export default function AboutPanel({ visible }) {
              <mesh><octahedronGeometry args={[1.5, 0]} /><meshBasicMaterial color="#00f3ff" wireframe transparent opacity={0.1} /></mesh>
           </group>
         </Float>
-        <Text position={[0, 0, 0.1]} fontSize={isMobile ? 0.2 : 0.3} color="#00f3ff" anchorX="center" anchorY="middle" fontWeight="bold">
+        <Text position={[0, 0, 0.1]} fontSize={isMobile ? 0.22 : 0.3} color="#00f3ff" anchorX="center" anchorY="middle" fontWeight="bold">
           FULL STACK DEV
         </Text>
       </group>
 
-      <Text position={[0, layout.headerY, 0]} fontSize={isMobile ? 0.35 : 0.5} color="white" anchorX="center" outlineWidth={0.02} outlineColor="#00f3ff">
+      <Text position={[0, layout.headerY, 0]} fontSize={isMobile ? 0.4 : 0.5} color="white" anchorX="center" outlineWidth={0.02} outlineColor="#00f3ff">
         {myProfile.name.toUpperCase()}
       </Text>
 

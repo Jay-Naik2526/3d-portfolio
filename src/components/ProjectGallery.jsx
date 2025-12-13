@@ -26,19 +26,24 @@ function HoloPanel({ project, position, rotation, scale = 1 }) {
         window.open(project.url, '_blank'); 
       }}
     >
+      {/* Backing for Image */}
       <mesh position={[0, 0.5, 0.04]}>
         <planeGeometry args={[2.3, 1.4]} />
         <meshBasicMaterial color="white" side={THREE.FrontSide} />
       </mesh>
+      
+      {/* Image: toneMapped=false keeps colors accurate */}
       <Image 
         url={project.image} 
         transparent={false}
         opacity={1} 
-        toneMapped={false}
+        toneMapped={false} 
         side={THREE.FrontSide} 
         scale={[2.3, 1.4]} 
         position={[0, 0.5, 0.05]} 
       />
+
+      {/* Frame */}
       <mesh position={[0, 0.5, 0]}>
         <planeGeometry args={[2.5, 1.6]} />
         <meshBasicMaterial color="#00f3ff" transparent opacity={0.15} side={THREE.FrontSide} />
@@ -47,10 +52,30 @@ function HoloPanel({ project, position, rotation, scale = 1 }) {
         <ringGeometry args={[1.4, 1.45, 4]} rotation={[0, 0, Math.PI / 4]} />
         <meshBasicMaterial color={hovered ? "#ffffff" : "#00f3ff"} side={THREE.FrontSide} toneMapped={false}/>
       </mesh>
+
+      {/* TEXT: Increased sizes for clarity */}
       <group position={[0, -1.3, 0.1]}>
-        <Text position={[0, 0.3, 0]} fontSize={0.2} color="white" anchorX="center">{project.title.toUpperCase()}</Text>
-        <Text position={[0, 0, 0]} fontSize={0.1} color="#aaffff" anchorX="center" maxWidth={2.2} textAlign="center">{project.desc}</Text>
-        <Text position={[0, -0.3, 0.01]} fontSize={0.1} color={hovered ? "white" : "#00f3ff"}>[ CLICK TO VIEW ]</Text>
+        <Text 
+            position={[0, 0.4, 0]} 
+            fontSize={0.25} // Increased from 0.2
+            color="white" 
+            anchorX="center"
+            fontWeight="bold" // Bolder
+        >
+            {project.title.toUpperCase()}
+        </Text>
+        <Text 
+            position={[0, 0, 0]} 
+            fontSize={0.13} // Increased from 0.1
+            color="#d0ffff" // Brighter cyan for better contrast against black
+            anchorX="center" 
+            maxWidth={2.2} 
+            textAlign="center"
+            lineHeight={1.4}
+        >
+            {project.desc}
+        </Text>
+        <Text position={[0, -0.4, 0.01]} fontSize={0.12} color={hovered ? "white" : "#00f3ff"}>[ CLICK TO VIEW ]</Text>
       </group>
     </group>
   );
@@ -65,8 +90,6 @@ export default function ProjectGallery({ visible, controls }) {
   const { viewport, gl } = useThree();
   const isMobile = viewport.width < 7;
   
-  // Calculate radius based on viewport width
-  // Ensures it fits within the screen bounds
   const radius = isMobile ? Math.min(viewport.width * 0.4, 2.5) : 6;
   const panelScale = isMobile ? 0.6 : 1; 
 
@@ -98,7 +121,6 @@ export default function ProjectGallery({ visible, controls }) {
 
   useFrame((state, delta) => {
     easing.damp3(groupRef.current.position, visible ? [0, 0, 0] : [0, -15, 0], 0.4, delta);
-
     if (visible) {
       if (controls && controls.x !== 0) {
           groupRef.current.rotation.y += controls.x * delta * 2;
