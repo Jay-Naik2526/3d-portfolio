@@ -33,6 +33,12 @@ const scanlineFragmentShader = `
 // Helper to determine if a project uses a specific skill (handles stack aliases)
 const projectMatchesSkill = (project, skill) => {
   if (!skill) return true;
+  
+  // Check the explicit skills array first
+  if (project.skills && project.skills.some(s => s.toLowerCase() === skill.toLowerCase())) {
+    return true;
+  }
+
   const title = project.title.toLowerCase();
   const desc = project.desc.toLowerCase();
   const s = skill.toLowerCase();
