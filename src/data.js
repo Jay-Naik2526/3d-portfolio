@@ -45,6 +45,54 @@ export const myProfile = {
         url: "https://github.com/Jay-Naik2526/Resume_Analyzer",
         image: "/img/resume.png"
       },
+      {
+        title: "Personal Finance Tracker",
+        desc: "Finance Tracker with Multi-payer Split Bill & Debt Tracking // MERN Stack",
+        url: "https://personal-finance-tracker-one-lime.vercel.app",
+        image: "/img/finance.png"
+      },
+      {
+        title: "TinyTies",
+        desc: "URL Shortener & Analytics Platform // React + Node.js",
+        url: "https://tinyties.vercel.app",
+        image: "/img/tinyties.png"
+      },
+      {
+        title: "Smart Stock",
+        desc: "Real-time Stock Tracking and Analysis Dashboard // React",
+        url: "https://github.com/Jay-Naik2526/smart-stock",
+        image: "/img/stock.png"
+      },
+      {
+        title: "Fire Evacuation System",
+        desc: "DAIoT Smart Fire Evacuation System // Python & IoT",
+        url: "https://github.com/Jay-Naik2526/fire-evacuation-system",
+        image: "/img/fire.png"
+      },
+      {
+        title: "Ambiora Techfest",
+        desc: "Official Website for Ambiora Techfest // React + Tailwind",
+        url: "https://ambiora-techfest.vercel.app",
+        image: "/img/ambiora.png"
+      },
+      {
+        title: "Flavium Official",
+        desc: "Official Flavium Broadcast Website // React",
+        url: "https://flavium-official.vercel.app",
+        image: "/img/flavium.png"
+      },
+      {
+        title: "TCS Notes",
+        desc: "Theoretical Computer Science (TCS) Notes Portal // HTML + CSS",
+        url: "https://tcs-notes.vercel.app",
+        image: "/img/tcsnotes.png"
+      },
+      {
+        title: "W8 Fitness",
+        desc: "Gym Website with Client, Admin, and Trainer Portal // React + TypeScript",
+        url: "https://w8-fitness.vercel.app",
+        image: "/img/w8fitness.png"
+      }
   ];
   
   export const mySkills = [
