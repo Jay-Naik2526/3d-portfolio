@@ -97,13 +97,20 @@ export default function ProjectGallery({ visible, controls }) {
   const velocity = useRef(0); 
   
   const { viewport, gl } = useThree();
-  const isMobile = viewport.width < 7;
-  
-  const radius = isMobile ? Math.min(viewport.width * 0.4, 2.5) : 6;
-  const panelScale = isMobile ? 0.6 : 1; 
 
   if (!myProjects) return null;
   const count = myProjects.length;
+  const isMobile = viewport.width < 7;
+  
+  // Calculate dynamic radius and scale based on project count to prevent overlapping
+  const panelScale = isMobile 
+    ? Math.max(0.4, 0.6 * (1.0 - Math.max(0, count - 6) * 0.025)) 
+    : Math.max(0.6, 1.0 * (1.0 - Math.max(0, count - 6) * 0.03));
+    
+  const baseRadius = isMobile ? Math.min(viewport.width * 0.4, 2.5) : 6;
+  const radius = isMobile
+    ? baseRadius + Math.max(0, count - 6) * 0.15
+    : baseRadius + Math.max(0, count - 6) * 0.35;
 
   useEffect(() => {
     const handleDown = (e) => {

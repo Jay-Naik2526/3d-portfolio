@@ -9,17 +9,27 @@ import AboutPanel from './AboutPanel';
 import ProjectGallery from './ProjectGallery';
 import SkillsCloud from './SkillsCloud';
 import ContactPanel from './ContactPanel';
+import { myProjects } from '../data';
 
-function SceneRig() {
+function SceneRig({ mode }) {
   const { camera, size } = useThree();
   
   useFrame(() => {
     const aspect = size.width / size.height;
     const isMobile = size.width < 768;
+    const count = myProjects ? myProjects.length : 6;
     
-    // Dynamic Z adjustment
-    const targetZ = isMobile ? 20 / aspect : 13; 
-    const finalZ = Math.min(targetZ, 25);
+    // Dynamic Z adjustment based on mode and project count to frame the gallery perfectly
+    let targetZ;
+    if (mode === "PROJECTS") {
+      const desktopZ = 13 + Math.max(0, count - 6) * 0.45;
+      const mobileZ = (20 / aspect) + Math.max(0, count - 6) * 0.25;
+      targetZ = isMobile ? mobileZ : desktopZ;
+    } else {
+      targetZ = isMobile ? 20 / aspect : 13; 
+    }
+    
+    const finalZ = Math.min(targetZ, 30);
 
     camera.position.lerp(new THREE.Vector3(0, 0, finalZ), 0.1); 
     camera.updateProjectionMatrix();
@@ -32,7 +42,7 @@ export default function HologramScene({ mode }) {
   return (
     <>
       <PerspectiveCamera makeDefault position={[0, 0, 15]} />
-      <SceneRig />
+      <SceneRig mode={mode} />
       
       <OrbitControls 
         enableZoom={false} 
