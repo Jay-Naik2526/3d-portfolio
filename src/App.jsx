@@ -51,9 +51,11 @@ export default function App() {
   // Play a glitch transition sound whenever the mode changes
   useEffect(() => {
     playGlitch();
-    // Reset selected items when moving between sections
     setSelectedProject(null);
-    setSelectedSkill(null);
+    // Only reset the skill filter if we navigate away from PROJECTS or SKILLS tabs
+    if (mode !== "PROJECTS" && mode !== "SKILLS") {
+      setSelectedSkill(null);
+    }
   }, [mode]);
 
   return (
