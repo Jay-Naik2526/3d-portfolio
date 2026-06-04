@@ -1,13 +1,16 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { Loader } from '@react-three/drei'; // <-- IMPORT THIS
+import { Loader } from '@react-three/drei'; 
 import HologramScene from './components/HologramScene';
 import UI from './components/UI';
+import { playGlitch } from './utils/audio';
 
 const MODES = ["HOME", "ABOUT", "PROJECTS", "SKILLS", "CONTACT"];
 
 export default function App() {
   const [mode, setMode] = useState("HOME");
+  const [selectedSkill, setSelectedSkill] = useState(null);
+  const [selectedProject, setSelectedProject] = useState(null);
 
   const changeMode = useCallback((direction) => {
     setMode((prevMode) => {
@@ -45,27 +48,45 @@ export default function App() {
     };
   }, [changeMode]);
 
+  // Play a glitch transition sound whenever the mode changes
+  useEffect(() => {
+    playGlitch();
+    // Reset selected items when moving between sections
+    setSelectedProject(null);
+    setSelectedSkill(null);
+  }, [mode]);
+
   return (
     <div style={{ width: "100vw", height: "100vh", background: "black", position: 'relative' }}>
       
       {/* 1. THE 3D SCENE */}
       <Canvas dpr={[1, 2]}>
-        <HologramScene mode={mode} /> 
+        <HologramScene 
+          mode={mode} 
+          selectedSkill={selectedSkill}
+          setSelectedSkill={setSelectedSkill}
+          selectedProject={selectedProject}
+          setSelectedProject={setSelectedProject}
+        /> 
       </Canvas>
 
       {/* 2. THE UI OVERLAY */}
       <UI 
         currentMode={mode} 
         setCurrentMode={setMode} 
+        selectedSkill={selectedSkill}
+        setSelectedSkill={setSelectedSkill}
+        selectedProject={selectedProject}
+        setSelectedProject={setSelectedProject}
       />
 
-      {/* 3. THE LOADING SCREEN (Add this at the bottom) */}
+      {/* 3. THE LOADING SCREEN */}
       <Loader 
-        containerStyles={{ background: 'black' }} // Black background
-        innerStyles={{ background: '#333', width: '200px', height: '10px' }} // Bar container
-        barStyles={{ background: '#00f3ff', height: '10px' }} // Cyan progress bar
-        dataStyles={{ color: '#00f3ff', fontSize: '14px', fontFamily: 'monospace', fontWeight: 'bold' }} // Text style
-        dataInterpolation={(p) => `SYSTEM LOADING... ${p.toFixed(0)}%`} // Custom text
+        containerStyles={{ background: 'black' }} 
+        innerStyles={{ background: '#333', width: '200px', height: '10px' }} 
+        barStyles={{ background: '#00f3ff', height: '10px' }} 
+        dataStyles={{ color: '#00f3ff', fontSize: '14px', fontFamily: 'monospace', fontWeight: 'bold' }} 
+        dataInterpolation={(p) => `SYSTEM LOADING... ${p.toFixed(0)}%`} 
       />
       
     </div>

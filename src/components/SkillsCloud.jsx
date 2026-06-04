@@ -1,10 +1,70 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Text, Float } from '@react-three/drei';
 import { easing } from 'maath';
 import { mySkills } from '../data'; 
+import { playClick, playHover } from '../utils/audio';
 
-export default function SkillsCloud({ visible, controls }) {
+function SkillItem({ skill, position, selectedSkill, setSelectedSkill }) {
+  const [hovered, setHovered] = useState(false);
+  const isSelected = selectedSkill === skill;
+  const groupRef = useRef();
+
+  useFrame((state, delta) => {
+    const targetScale = isSelected ? 1.3 : (hovered ? 1.15 : 1.0);
+    easing.damp3(groupRef.current.scale, [targetScale, targetScale, targetScale], 0.15, delta);
+  });
+
+  return (
+    <group
+      ref={groupRef}
+      position={position}
+      onPointerOver={(e) => {
+        e.stopPropagation();
+        setHovered(true);
+        document.body.style.cursor = 'pointer';
+        playHover();
+      }}
+      onPointerOut={(e) => {
+        e.stopPropagation();
+        setHovered(false);
+        document.body.style.cursor = 'default';
+      }}
+      onClick={(e) => {
+        e.stopPropagation();
+        playClick();
+        setSelectedSkill(prev => prev === skill ? null : skill);
+      }}
+    >
+      <mesh>
+        <octahedronGeometry args={[0.6, 0]} /> 
+        <meshStandardMaterial 
+            color={isSelected ? "#00f3ff" : (hovered ? "#d050ff" : "#a020f0")} 
+            emissive={isSelected ? "#00f3ff" : (hovered ? "#d050ff" : "#a020f0")}
+            emissiveIntensity={isSelected ? 3 : (hovered ? 2.5 : 2)}
+            wireframe={true} 
+            toneMapped={false}
+        />
+      </mesh>
+      <mesh>
+         <octahedronGeometry args={[0.2, 0]} />
+         <meshBasicMaterial color={isSelected ? "#00f3ff" : "white"} />
+      </mesh>
+      <Text 
+        position={[0, 0.8, 0]} 
+        fontSize={0.3} 
+        color={isSelected ? "#00f3ff" : (hovered ? "#ffffff" : "#e0b0ff")} 
+        anchorX="center" 
+        anchorY="middle"
+        fontWeight={isSelected ? "bold" : "normal"}
+      >
+        {skill.toUpperCase()}
+      </Text>
+    </group>
+  );
+}
+
+export default function SkillsCloud({ visible, controls, selectedSkill, setSelectedSkill }) {
   const groupRef = useRef();
   
   const { viewport } = useThree();
@@ -37,31 +97,12 @@ export default function SkillsCloud({ visible, controls }) {
 
         return (
           <Float key={i} speed={2} rotationIntensity={0.5} floatIntensity={1}>
-            <group position={[x, y, z]}>
-              <mesh>
-                <octahedronGeometry args={[0.6, 0]} /> 
-                <meshStandardMaterial 
-                    color="#a020f0" 
-                    emissive="#a020f0"
-                    emissiveIntensity={2}
-                    wireframe={true} 
-                    toneMapped={false}
-                />
-              </mesh>
-              <mesh>
-                 <octahedronGeometry args={[0.2, 0]} />
-                 <meshBasicMaterial color="white" />
-              </mesh>
-              <Text 
-                position={[0, 0.8, 0]} 
-                fontSize={0.3} 
-                color="#e0b0ff" 
-                anchorX="center" 
-                anchorY="middle"
-              >
-                {skill.toUpperCase()}
-              </Text>
-            </group>
+            <SkillItem
+              skill={skill}
+              position={[x, y, z]}
+              selectedSkill={selectedSkill}
+              setSelectedSkill={setSelectedSkill}
+            />
           </Float>
         );
       })}

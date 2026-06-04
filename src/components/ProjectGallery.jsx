@@ -4,11 +4,62 @@ import { Text, Image } from '@react-three/drei';
 import { easing } from 'maath';
 import * as THREE from 'three';
 import { myProjects } from '../data'; 
+import { playClick, playHover } from '../utils/audio';
 
-function HoloPanel({ project, position, rotation, scale = 1 }) {
+// Custom shaders for holographic scanline overlay
+const scanlineVertexShader = `
+  varying vec2 vUv;
+  void main() {
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`;
+
+const scanlineFragmentShader = `
+  uniform float time;
+  uniform float opacity;
+  varying vec2 vUv;
+  void main() {
+    // Scrolling scanlines
+    float scanline = sin(vUv.y * 100.0 + time * 6.0) * 0.08 + 0.92;
+    // Fast pulsing laser line
+    float linePattern = step(0.96, sin(vUv.y * 150.0 - time * 10.0)) * 0.12;
+    // Glowing sci-fi cyan
+    vec3 color = vec3(0.0, 0.95, 1.0); 
+    gl_FragColor = vec4(color, opacity * (linePattern + (1.0 - scanline) * 0.35));
+  }
+`;
+
+// Helper to determine if a project uses a specific skill (handles stack aliases)
+const projectMatchesSkill = (project, skill) => {
+  if (!skill) return true;
+  const title = project.title.toLowerCase();
+  const desc = project.desc.toLowerCase();
+  const s = skill.toLowerCase();
+  
+  if (title.includes(s) || desc.includes(s)) return true;
+  if (desc.includes("mern") && ["mongodb", "react", "node.js", "express", "experss", "javascript"].includes(s)) {
+    return true;
+  }
+  return false;
+};
+
+function HoloPanel({ 
+  project, 
+  position, 
+  rotation, 
+  scale = 1, 
+  selectedSkill, 
+  selectedProject, 
+  setSelectedProject 
+}) {
   const group = useRef();
+  const scanlineRef = useRef();
   const [hovered, setHover] = useState(false);
   const [textureUrl, setTextureUrl] = useState('/img/resume.png');
+
+  const matchesSkill = selectedSkill ? projectMatchesSkill(project, selectedSkill) : true;
+  const isSelected = selectedProject?.title === project.title;
 
   useEffect(() => {
     if (!project.image) return;
@@ -19,8 +70,29 @@ function HoloPanel({ project, position, rotation, scale = 1 }) {
   }, [project.image]);
 
   useFrame((state, delta) => {
-    easing.damp3(group.current.scale, hovered ? 1.15 * scale : 1 * scale, 0.2, delta);
+    // Dynamic scale depending on selection and filter matches
+    let targetScale = scale;
+    if (selectedSkill) {
+      targetScale = matchesSkill ? scale * 1.15 : scale * 0.55;
+    }
+    if (isSelected) {
+      targetScale = scale * 1.25;
+    } else if (hovered) {
+      targetScale *= 1.15;
+    }
+    
+    easing.damp3(group.current.scale, [targetScale, targetScale, targetScale], 0.18, delta);
+
+    if (scanlineRef.current) {
+      scanlineRef.current.uniforms.time.value = state.clock.getElapsedTime();
+      const targetOpacity = selectedSkill && !matchesSkill ? 0.08 : 0.45;
+      easing.damp(scanlineRef.current.uniforms.opacity, 'value', targetOpacity, 0.2, delta);
+    }
   });
+
+  const opacity = selectedSkill && !matchesSkill ? 0.25 : 1.0;
+  const frameOpacity = selectedSkill && !matchesSkill ? 0.05 : 0.15;
+  const frameColor = isSelected ? "#00f3ff" : (matchesSkill && selectedSkill ? "#00f3ff" : (hovered ? "#ffffff" : "#00f3ff"));
 
   return (
     <group 
@@ -28,69 +100,122 @@ function HoloPanel({ project, position, rotation, scale = 1 }) {
       position={position} 
       rotation={rotation}
       scale={scale} 
-      onPointerOver={() => { setHover(true); document.body.style.cursor = 'pointer'; }}
-      onPointerOut={() => { setHover(false); document.body.style.cursor = 'grab'; }}
+      onPointerOver={(e) => { 
+        e.stopPropagation(); 
+        setHover(true); 
+        document.body.style.cursor = 'pointer'; 
+        playHover(); 
+      }}
+      onPointerOut={(e) => { 
+        e.stopPropagation(); 
+        setHover(false); 
+        document.body.style.cursor = 'grab'; 
+      }}
       onClick={(e) => { 
         e.stopPropagation(); 
-        window.open(project.url, '_blank'); 
+        playClick();
+        setSelectedProject(isSelected ? null : project); 
       }}
     >
       {/* Backing for Image */}
       <mesh position={[0, 0.5, 0.04]}>
         <planeGeometry args={[2.3, 1.4]} />
-        <meshBasicMaterial color="white" side={THREE.FrontSide} />
+        <meshBasicMaterial 
+          color={selectedSkill && !matchesSkill ? "#111111" : "white"} 
+          side={THREE.FrontSide} 
+          transparent 
+          opacity={opacity} 
+        />
       </mesh>
       
-      {/* Image: toneMapped=false keeps colors accurate */}
+      {/* Image */}
       <Image 
         url={textureUrl} 
-        transparent={false}
-        opacity={1} 
+        transparent={true}
+        opacity={opacity} 
         toneMapped={false} 
         side={THREE.FrontSide} 
         scale={[2.3, 1.4]} 
         position={[0, 0.5, 0.05]} 
       />
 
+      {/* Custom Hologram Scanline Shader Overlay */}
+      <mesh position={[0, 0.5, 0.051]}>
+        <planeGeometry args={[2.3, 1.4]} />
+        <shaderMaterial
+          ref={scanlineRef}
+          vertexShader={scanlineVertexShader}
+          fragmentShader={scanlineFragmentShader}
+          uniforms={{
+            time: { value: 0 },
+            opacity: { value: 0.45 }
+          }}
+          transparent
+          depthWrite={false}
+          blending={THREE.AdditiveBlending}
+        />
+      </mesh>
+
       {/* Frame */}
       <mesh position={[0, 0.5, 0]}>
         <planeGeometry args={[2.5, 1.6]} />
-        <meshBasicMaterial color="#00f3ff" transparent opacity={0.15} side={THREE.FrontSide} />
+        <meshBasicMaterial color={frameColor} transparent opacity={frameOpacity} side={THREE.FrontSide} />
       </mesh>
       <mesh position={[0, 0.5, 0]}>
         <ringGeometry args={[1.4, 1.45, 4]} rotation={[0, 0, Math.PI / 4]} />
-        <meshBasicMaterial color={hovered ? "#ffffff" : "#00f3ff"} side={THREE.FrontSide} toneMapped={false}/>
+        <meshBasicMaterial 
+          color={isSelected ? "#00f3ff" : (hovered ? "#ffffff" : "#00f3ff")} 
+          transparent 
+          opacity={opacity} 
+          side={THREE.FrontSide} 
+          toneMapped={false}
+        />
       </mesh>
 
-      {/* TEXT: Increased sizes for clarity */}
+      {/* TEXT */}
       <group position={[0, -1.3, 0.1]}>
         <Text 
             position={[0, 0.4, 0]} 
-            fontSize={0.25} // Increased from 0.2
-            color="white" 
+            fontSize={0.25} 
+            color={selectedSkill && !matchesSkill ? "#555" : "white"} 
             anchorX="center"
-            fontWeight="bold" // Bolder
+            fontWeight="bold"
+            fillOpacity={opacity}
         >
             {project.title.toUpperCase()}
         </Text>
         <Text 
             position={[0, 0, 0]} 
-            fontSize={0.13} // Increased from 0.1
-            color="#d0ffff" // Brighter cyan for better contrast against black
+            fontSize={0.13} 
+            color={selectedSkill && !matchesSkill ? "#333" : "#d0ffff"} 
             anchorX="center" 
             maxWidth={2.2} 
             textAlign="center"
             lineHeight={1.4}
+            fillOpacity={opacity}
         >
             {project.desc}
         </Text>
-        <Text position={[0, -0.4, 0.01]} fontSize={0.12} color={hovered ? "white" : "#00f3ff"}>[ CLICK TO VIEW ]</Text>
+        <Text 
+            position={[0, -0.4, 0.01]} 
+            fontSize={0.12} 
+            color={isSelected ? "#00f3ff" : (hovered ? "white" : "#00f3ff")}
+            fillOpacity={opacity}
+        >
+            {isSelected ? "[ ACTIVE DETAIL ]" : "[ CLICK TO SELECT ]"}
+        </Text>
       </group>
     </group>
   );
 }
 
-export default function ProjectGallery({ visible, controls }) {
+export default function ProjectGallery({ 
+  visible, 
+  controls, 
+  selectedSkill, 
+  selectedProject, 
+  setSelectedProject 
+}) {
   const groupRef = useRef();
   const isDragging = useRef(false);
   const previousPointerX = useRef(0);
@@ -138,7 +263,19 @@ export default function ProjectGallery({ visible, controls }) {
   useFrame((state, delta) => {
     easing.damp3(groupRef.current.position, visible ? [0, 0, 0] : [0, -15, 0], 0.4, delta);
     if (visible) {
-      if (controls && controls.x !== 0) {
+      if (selectedProject) {
+        // Auto-rotate the gallery to center the selected project card in front
+        const index = myProjects.findIndex(p => p.title === selectedProject.title);
+        if (index !== -1) {
+          const angleStep = (Math.PI * 2) / count;
+          const targetRot = -index * angleStep;
+          let diff = targetRot - groupRef.current.rotation.y;
+          // Shortest path interpolation
+          diff = Math.atan2(Math.sin(diff), Math.cos(diff));
+          groupRef.current.rotation.y += diff * 0.08;
+          velocity.current = 0; // lock user drift
+        }
+      } else if (controls && controls.x !== 0) {
           groupRef.current.rotation.y += controls.x * delta * 2;
       } else {
          groupRef.current.rotation.y += velocity.current;
@@ -166,6 +303,9 @@ export default function ProjectGallery({ visible, controls }) {
                 position={[x, 0, z]} 
                 rotation={[0, rotY, 0]}
                 scale={panelScale} 
+                selectedSkill={selectedSkill}
+                selectedProject={selectedProject}
+                setSelectedProject={setSelectedProject}
             />
         );
       })}
