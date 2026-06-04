@@ -8,6 +8,15 @@ import { myProjects } from '../data';
 function HoloPanel({ project, position, rotation, scale = 1 }) {
   const group = useRef();
   const [hovered, setHover] = useState(false);
+  const [textureUrl, setTextureUrl] = useState('/img/resume.png');
+
+  useEffect(() => {
+    if (!project.image) return;
+    const img = new window.Image();
+    img.src = project.image;
+    img.onload = () => setTextureUrl(project.image);
+    img.onerror = () => setTextureUrl('/img/resume.png');
+  }, [project.image]);
 
   useFrame((state, delta) => {
     easing.damp3(group.current.scale, hovered ? 1.15 * scale : 1 * scale, 0.2, delta);
@@ -34,7 +43,7 @@ function HoloPanel({ project, position, rotation, scale = 1 }) {
       
       {/* Image: toneMapped=false keeps colors accurate */}
       <Image 
-        url={project.image} 
+        url={textureUrl} 
         transparent={false}
         opacity={1} 
         toneMapped={false} 
