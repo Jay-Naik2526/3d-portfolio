@@ -6,20 +6,27 @@ export default function InteractiveParticles({ count = 1200 }) {
   const pointsRef = useRef();
   const { viewport } = useThree();
 
-  // Create initial random particle positions and store their original home coordinates
+  // Create initial random particle positions, restricting them to the background 
+  // and keeping the center area clear of particles to avoid text overlap.
   const [positions, initialPositions] = useMemo(() => {
     const pos = new Float32Array(count * 3);
     const home = new Float32Array(count * 3);
 
     for (let i = 0; i < count; i++) {
-      // Spawn particles randomly in a large bounding sphere/cube
-      const theta = THREE.MathUtils.randFloat(0, Math.PI * 2);
-      const phi = THREE.MathUtils.randFloat(0, Math.PI);
-      const r = THREE.MathUtils.randFloat(4, 25);
+      let x = 0, y = 0, z = 0;
+      let valid = false;
 
-      const x = r * Math.sin(phi) * Math.cos(theta);
-      const y = r * Math.sin(phi) * Math.sin(theta);
-      const z = r * Math.cos(phi);
+      while (!valid) {
+        // Spawn particles in a background bounding volume
+        x = THREE.MathUtils.randFloat(-24, 24);
+        y = THREE.MathUtils.randFloat(-14, 14);
+        z = THREE.MathUtils.randFloat(-30, -6); // Strictly behind active panels (Z = 0)
+
+        // Exclude the central screen region to prevent overlapping with front-facing text panels
+        if (Math.abs(x) > 7.5 || Math.abs(y) > 4.5) {
+          valid = true;
+        }
+      }
 
       pos[i * 3] = x;
       pos[i * 3 + 1] = y;
@@ -43,7 +50,7 @@ export default function InteractiveParticles({ count = 1200 }) {
     const posAttr = geo.attributes.position;
     const t = state.clock.getElapsedTime();
 
-    // Map mouse coordinates to 3D coordinate space near active plane
+    // Map mouse screen coordinates to the active Z=0 plane
     mouse3D.set(
       (state.pointer.x * viewport.width) / 2,
       (state.pointer.y * viewport.height) / 2,
@@ -60,24 +67,25 @@ export default function InteractiveParticles({ count = 1200 }) {
       const hy = initialPositions[idx + 1];
       const hz = initialPositions[idx + 2];
 
-      // 1. Slow drift motion
-      px += Math.sin(t * 0.15 + hx) * 0.004;
-      py += Math.cos(t * 0.2 + hy) * 0.004;
-      pz += Math.sin(t * 0.1 + hz) * 0.004;
+      // 1. Slow, organic background drift
+      px += Math.sin(t * 0.12 + hx) * 0.003;
+      py += Math.cos(t * 0.18 + hy) * 0.003;
+      pz += Math.sin(t * 0.08 + hz) * 0.003;
 
-      // 2. Cursor repulsion field
-      dummyVec.set(px, py, pz);
-      const dist = dummyVec.distanceTo(mouse3D);
+      // 2. Cursor repulsion calculated in 2D (X/Y projection)
+      const dist2D = Math.hypot(px - mouse3D.x, py - mouse3D.y);
 
-      if (dist < 4.5) {
-        const dir = dummyVec.sub(mouse3D).normalize();
-        const force = (4.5 - dist) * 0.07;
-        px += dir.x * force;
-        py += dir.y * force;
-        pz += dir.z * force;
+      if (dist2D < 4.0) {
+        const dx = px - mouse3D.x;
+        const dy = py - mouse3D.y;
+        const len = Math.hypot(dx, dy) || 1;
+        const force = (4.0 - dist2D) * 0.06;
+        
+        px += (dx / len) * force;
+        py += (dy / len) * force;
       }
 
-      // 3. Elastic return force
+      // 3. Elastic return force to pull particles back to original coordinates
       px += (hx - px) * 0.015;
       py += (hy - py) * 0.015;
       pz += (hz - pz) * 0.015;
@@ -103,7 +111,7 @@ export default function InteractiveParticles({ count = 1200 }) {
         sizeAttenuation={true}
         color="#00f3ff"
         transparent
-        opacity={0.5}
+        opacity={0.45}
         depthWrite={false}
         blending={THREE.AdditiveBlending}
       />

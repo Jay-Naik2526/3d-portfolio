@@ -113,7 +113,8 @@ function HoloPanel({
       }}
       onClick={(e) => { 
         e.stopPropagation(); 
-        playClick();
+        playSuccess();
+        window.open(project.url, '_blank');
         setSelectedProject(isSelected ? null : project); 
       }}
     >

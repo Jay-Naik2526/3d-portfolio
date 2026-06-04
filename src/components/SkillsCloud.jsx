@@ -5,7 +5,7 @@ import { easing } from 'maath';
 import { mySkills } from '../data'; 
 import { playClick, playHover } from '../utils/audio';
 
-function SkillItem({ skill, position, selectedSkill, setSelectedSkill }) {
+function SkillItem({ skill, position, selectedSkill, setSelectedSkill, setMode }) {
   const [hovered, setHovered] = useState(false);
   const isSelected = selectedSkill === skill;
   const groupRef = useRef();
@@ -34,6 +34,9 @@ function SkillItem({ skill, position, selectedSkill, setSelectedSkill }) {
         e.stopPropagation();
         playClick();
         setSelectedSkill(prev => prev === skill ? null : skill);
+        if (setMode) {
+          setMode("PROJECTS");
+        }
       }}
     >
       <mesh>
@@ -64,7 +67,7 @@ function SkillItem({ skill, position, selectedSkill, setSelectedSkill }) {
   );
 }
 
-export default function SkillsCloud({ visible, controls, selectedSkill, setSelectedSkill }) {
+export default function SkillsCloud({ visible, controls, selectedSkill, setSelectedSkill, setMode }) {
   const groupRef = useRef();
   
   const { viewport } = useThree();
@@ -102,6 +105,7 @@ export default function SkillsCloud({ visible, controls, selectedSkill, setSelec
               position={[x, y, z]}
               selectedSkill={selectedSkill}
               setSelectedSkill={setSelectedSkill}
+              setMode={setMode}
             />
           </Float>
         );

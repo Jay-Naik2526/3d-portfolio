@@ -53,6 +53,7 @@ function SceneRig({ mode, selectedProject }) {
 
 export default function HologramScene({ 
   mode, 
+  setMode,
   selectedSkill, 
   setSelectedSkill, 
   selectedProject, 
@@ -89,6 +90,7 @@ export default function HologramScene({
         visible={mode === "SKILLS"} 
         selectedSkill={selectedSkill}
         setSelectedSkill={setSelectedSkill}
+        setMode={setMode}
       />
       <ContactPanel visible={mode === "CONTACT"} />
       

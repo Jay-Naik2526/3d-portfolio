@@ -63,6 +63,7 @@ export default function App() {
       <Canvas dpr={[1, 2]}>
         <HologramScene 
           mode={mode} 
+          setMode={setMode}
           selectedSkill={selectedSkill}
           setSelectedSkill={setSelectedSkill}
           selectedProject={selectedProject}
