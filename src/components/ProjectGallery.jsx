@@ -4,7 +4,7 @@ import { Text, Image } from '@react-three/drei';
 import { easing } from 'maath';
 import * as THREE from 'three';
 import { myProjects } from '../data'; 
-import { playClick, playHover } from '../utils/audio';
+import { playClick, playHover, playSuccess } from '../utils/audio';
 
 // Custom shaders for holographic scanline overlay
 const scanlineVertexShader = `
@@ -57,8 +57,8 @@ function HoloPanel({
   const scanlineRef = useRef();
   const [hovered, setHover] = useState(false);
   const [textureUrl, setTextureUrl] = useState('/img/resume.png');
+  const isFirstRender = useRef(true);
 
-  const matchesSkill = selectedSkill ? projectMatchesSkill(project, selectedSkill) : true;
   const isSelected = selectedProject?.title === project.title;
 
   useEffect(() => {
@@ -70,11 +70,22 @@ function HoloPanel({
   }, [project.image]);
 
   useFrame((state, delta) => {
+    // Initialize position and rotation on first frame to prevent layout flashing
+    if (isFirstRender.current) {
+      group.current.position.copy(new THREE.Vector3(...position));
+      group.current.rotation.y = rotation[1];
+      isFirstRender.current = false;
+    } else {
+      // Smoothly animate the card to its new coordinates (handles carousel restructuring)
+      easing.damp3(group.current.position, position, 0.25, delta);
+      
+      let diffY = rotation[1] - group.current.rotation.y;
+      diffY = Math.atan2(Math.sin(diffY), Math.cos(diffY));
+      group.current.rotation.y += diffY * 0.15;
+    }
+
     // Dynamic scale depending on selection and filter matches
     let targetScale = scale;
-    if (selectedSkill) {
-      targetScale = matchesSkill ? scale * 1.15 : scale * 0.55;
-    }
     if (isSelected) {
       targetScale = scale * 1.25;
     } else if (hovered) {
@@ -85,21 +96,13 @@ function HoloPanel({
 
     if (scanlineRef.current) {
       scanlineRef.current.uniforms.time.value = state.clock.getElapsedTime();
-      const targetOpacity = selectedSkill && !matchesSkill ? 0.08 : 0.45;
-      easing.damp(scanlineRef.current.uniforms.opacity, 'value', targetOpacity, 0.2, delta);
+      easing.damp(scanlineRef.current.uniforms.opacity, 'value', 0.45, 0.2, delta);
     }
   });
-
-  const opacity = selectedSkill && !matchesSkill ? 0.25 : 1.0;
-  const frameOpacity = selectedSkill && !matchesSkill ? 0.05 : 0.15;
-  const frameColor = isSelected ? "#00f3ff" : (matchesSkill && selectedSkill ? "#00f3ff" : (hovered ? "#ffffff" : "#00f3ff"));
 
   return (
     <group 
       ref={group} 
-      position={position} 
-      rotation={rotation}
-      scale={scale} 
       onPointerOver={(e) => { 
         e.stopPropagation(); 
         setHover(true); 
@@ -122,10 +125,10 @@ function HoloPanel({
       <mesh position={[0, 0.5, 0.04]}>
         <planeGeometry args={[2.3, 1.4]} />
         <meshBasicMaterial 
-          color={selectedSkill && !matchesSkill ? "#111111" : "white"} 
+          color="white" 
           side={THREE.FrontSide} 
           transparent 
-          opacity={opacity} 
+          opacity={1.0} 
         />
       </mesh>
       
@@ -133,7 +136,7 @@ function HoloPanel({
       <Image 
         url={textureUrl} 
         transparent={true}
-        opacity={opacity} 
+        opacity={1.0} 
         toneMapped={false} 
         side={THREE.FrontSide} 
         scale={[2.3, 1.4]} 
@@ -160,14 +163,14 @@ function HoloPanel({
       {/* Frame */}
       <mesh position={[0, 0.5, 0]}>
         <planeGeometry args={[2.5, 1.6]} />
-        <meshBasicMaterial color={frameColor} transparent opacity={frameOpacity} side={THREE.FrontSide} />
+        <meshBasicMaterial color={isSelected ? "#00f3ff" : (hovered ? "#ffffff" : "#00f3ff")} transparent opacity={0.15} side={THREE.FrontSide} />
       </mesh>
       <mesh position={[0, 0.5, 0]}>
         <ringGeometry args={[1.4, 1.45, 4]} rotation={[0, 0, Math.PI / 4]} />
         <meshBasicMaterial 
           color={isSelected ? "#00f3ff" : (hovered ? "#ffffff" : "#00f3ff")} 
           transparent 
-          opacity={opacity} 
+          opacity={1.0} 
           side={THREE.FrontSide} 
           toneMapped={false}
         />
@@ -178,22 +181,22 @@ function HoloPanel({
         <Text 
             position={[0, 0.4, 0]} 
             fontSize={0.25} 
-            color={selectedSkill && !matchesSkill ? "#555" : "white"} 
+            color="white" 
             anchorX="center"
             fontWeight="bold"
-            fillOpacity={opacity}
+            fillOpacity={1.0}
         >
             {project.title.toUpperCase()}
         </Text>
         <Text 
             position={[0, 0, 0]} 
             fontSize={0.13} 
-            color={selectedSkill && !matchesSkill ? "#333" : "#d0ffff"} 
+            color="#d0ffff" 
             anchorX="center" 
             maxWidth={2.2} 
             textAlign="center"
             lineHeight={1.4}
-            fillOpacity={opacity}
+            fillOpacity={1.0}
         >
             {project.desc}
         </Text>
@@ -201,7 +204,7 @@ function HoloPanel({
             position={[0, -0.4, 0.01]} 
             fontSize={0.12} 
             color={isSelected ? "#00f3ff" : (hovered ? "white" : "#00f3ff")}
-            fillOpacity={opacity}
+            fillOpacity={1.0}
         >
             {isSelected ? "[ ACTIVE DETAIL ]" : "[ CLICK TO SELECT ]"}
         </Text>
@@ -225,10 +228,16 @@ export default function ProjectGallery({
   const { viewport, gl } = useThree();
 
   if (!myProjects) return null;
-  const count = myProjects.length;
+
+  // Filter projects dynamically based on the active selectedSkill
+  const filteredProjects = selectedSkill 
+    ? myProjects.filter(project => projectMatchesSkill(project, selectedSkill))
+    : myProjects;
+
+  const count = filteredProjects.length;
   const isMobile = viewport.width < 7;
   
-  // Calculate dynamic radius and scale based on project count to prevent overlapping
+  // Calculate dynamic radius and scale based on filtered project count
   const panelScale = isMobile 
     ? Math.max(0.4, 0.6 * (1.0 - Math.max(0, count - 6) * 0.025)) 
     : Math.max(0.6, 1.0 * (1.0 - Math.max(0, count - 6) * 0.03));
@@ -266,12 +275,11 @@ export default function ProjectGallery({
     if (visible) {
       if (selectedProject) {
         // Auto-rotate the gallery to center the selected project card in front
-        const index = myProjects.findIndex(p => p.title === selectedProject.title);
+        const index = filteredProjects.findIndex(p => p.title === selectedProject.title);
         if (index !== -1) {
           const angleStep = (Math.PI * 2) / count;
           const targetRot = -index * angleStep;
           let diff = targetRot - groupRef.current.rotation.y;
-          // Shortest path interpolation
           diff = Math.atan2(Math.sin(diff), Math.cos(diff));
           groupRef.current.rotation.y += diff * 0.08;
           velocity.current = 0; // lock user drift
@@ -290,7 +298,7 @@ export default function ProjectGallery({
 
   return (
     <group ref={groupRef}>
-      {myProjects.map((project, i) => {
+      {filteredProjects.map((project, i) => {
         const angleStep = (Math.PI * 2) / count;
         const angle = i * angleStep;
         const x = Math.sin(angle) * radius;
@@ -299,7 +307,7 @@ export default function ProjectGallery({
 
         return (
             <HoloPanel 
-                key={i} 
+                key={project.title} 
                 project={project} 
                 position={[x, 0, z]} 
                 rotation={[0, rotY, 0]}
