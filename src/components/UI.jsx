@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { playClick, playHover, playSuccess } from "../utils/audio";
-import { resumeData } from "../data";
+import { resumeData, myProfile } from "../data";
 
 function DecryptedText({ text, speed = 25, delay = 0 }) {
   const [displayText, setDisplayText] = useState("");
@@ -347,6 +347,7 @@ export default function UI({
       {currentMode === "RESUME" && (
         <div
           className="hud-sidebar cyber-grid"
+          onWheel={(e) => e.stopPropagation()}
           style={{
             position: "absolute",
             top: 0,
