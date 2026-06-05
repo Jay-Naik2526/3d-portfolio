@@ -118,3 +118,38 @@ export const aboutMe = {
   goals: "Currently aiming for Google Summer of Code (GSoC) 2026 and exploring Advanced AI architectures.",
   education: "Mukesh Patel School of Technology (MPSTME) | 2024 - 2028"
 };
+
+export const resumeData = {
+  education: [
+    {
+      institution: "SVKM's NMIMS MPSTME - Shirpur Campus",
+      degree: "B.Tech in Computer Science Engineering",
+      duration: "CGPA: 8.5 / 10",
+      details: "Focusing on Software Engineering, Data Structures, OOP (Java), Database Management, Web Programming, and Internet of Things (IoT)."
+    }
+  ],
+  experience: [
+    {
+      role: "Web Development Lead",
+      company: "Google Developer Groups on Campus NMIMS MPSTME",
+      duration: "2025 - Present",
+      details: "Leading a 10-member developer committee. Organised 3+ tech workshops for 100+ students and placed Top 10 in the GDG On-Campus Hackathon."
+    },
+    {
+      role: "Technical Lead",
+      company: "Ambiora Techfest & Flavium Sports Event",
+      duration: "2024 - Present",
+      details: "Built official registration and broadcast sites handling 500+ active event visitors with zero downtime, managing all technical operations."
+    }
+  ],
+  achievements: [
+    {
+      title: "Top 10 - GDG On Campus Hackathon",
+      details: "Placed in the top 10 out of 30+ competing developer teams in a campus-wide competition."
+    },
+    {
+      title: "Python Professional Certificate",
+      details: "Earned the 5-course 'Python for Everybody' Professional Certificate from University of Michigan via Coursera (2025)."
+    }
+  ]
+};

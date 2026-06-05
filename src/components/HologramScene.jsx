@@ -9,6 +9,7 @@ import AboutPanel from './AboutPanel';
 import ProjectGallery from './ProjectGallery';
 import SkillsCloud from './SkillsCloud';
 import ContactPanel from './ContactPanel';
+import ResumePanel from './ResumePanel';
 import { myProjects } from '../data';
 import InteractiveParticles from './InteractiveParticles';
 
@@ -38,6 +39,9 @@ function SceneRig({ mode, selectedProject }) {
         const mobileZ = (20 / aspect) + Math.max(0, count - 6) * 0.25;
         targetZ = isMobile ? mobileZ : desktopZ;
       }
+    } else if (mode === "RESUME") {
+      // Zoom close to frame the 3D resume terminal panel
+      targetZ = isMobile ? 12 : 7.8;
     } else {
       targetZ = isMobile ? 20 / aspect : 13; 
     }
@@ -92,6 +96,7 @@ export default function HologramScene({
         setSelectedSkill={setSelectedSkill}
         setMode={setMode}
       />
+      <ResumePanel visible={mode === "RESUME"} />
       <ContactPanel visible={mode === "CONTACT"} />
       
       <gridHelper args={[30, 30, 0x222222, 0x050505]} position={[0, -3, 0]} />
@@ -99,9 +104,9 @@ export default function HologramScene({
       {/* FIXED: Adjusted Bloom to prevent blurry text */}
       <EffectComposer disableNormalPass>
         <Bloom 
-            luminanceThreshold={0.2} // Only very bright things glow (prevents text blur)
+            luminanceThreshold={0.2} 
             mipmapBlur 
-            intensity={0.5} // Lowered intensity for clarity
+            intensity={0.5} 
             radius={0.4} 
         />
         <Vignette eskil={false} offset={0.1} darkness={1.1} />

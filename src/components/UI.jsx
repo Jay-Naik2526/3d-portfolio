@@ -17,7 +17,7 @@ export default function UI({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const buttons = ["HOME", "ABOUT", "PROJECTS", "SKILLS", "CONTACT"];
+  const buttons = ["HOME", "ABOUT", "PROJECTS", "SKILLS", "RESUME", "CONTACT"];
 
   return (
     <>

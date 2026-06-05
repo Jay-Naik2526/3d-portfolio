@@ -5,7 +5,7 @@ import HologramScene from './components/HologramScene';
 import UI from './components/UI';
 import { playGlitch } from './utils/audio';
 
-const MODES = ["HOME", "ABOUT", "PROJECTS", "SKILLS", "CONTACT"];
+const MODES = ["HOME", "ABOUT", "PROJECTS", "SKILLS", "RESUME", "CONTACT"];
 
 export default function App() {
   const [mode, setMode] = useState("HOME");
