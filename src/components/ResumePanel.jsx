@@ -13,9 +13,9 @@ export default function ResumePanel({ visible }) {
   const [downloadHovered, setDownloadHovered] = useState(false);
 
   useFrame((state, delta) => {
-    // Animate panel visibility scale and slide
+    // Animate panel visibility scale and slide (Y shifted to 0.65 to clear menu)
     easing.damp3(groupRef.current.scale, visible ? [1, 1, 1] : [0, 0, 0], 0.25, delta);
-    easing.damp3(groupRef.current.position, visible ? [0, 0, 0] : [0, -10, 0], 0.25, delta);
+    easing.damp3(groupRef.current.position, visible ? [0, 0.65, 0] : [0, -10, 0], 0.25, delta);
   });
 
   const tabs = [
