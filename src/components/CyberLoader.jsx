@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useProgress } from '@react-three/drei';
 import { playSuccess } from '../utils/audio';
 
@@ -33,11 +33,11 @@ const Bracket = ({ style }) => (
 );
 
 export default function CyberLoader() {
-  const { progress } = useProgress();
+  const { progress, active } = useProgress();
   const [logIndex, setLogIndex] = useState(0);
   const [visible, setVisible] = useState(true);
   const [mounted, setMounted] = useState(true);
-  const [playedSuccessSound, setPlayedSuccessSound] = useState(false);
+  const triggered = useRef(false);
 
   // Print diagnostics logs line-by-line
   useEffect(() => {
@@ -51,13 +51,13 @@ export default function CyberLoader() {
 
   // Determine if both actual Three.js assets and custom log prints are complete
   const logsComplete = logIndex >= BOOT_LOGS.length;
-  const assetsLoaded = progress >= 100;
+  const assetsLoaded = progress >= 100 || !active;
   const loaded = logsComplete && assetsLoaded;
 
   // Handle successful boot transition
   useEffect(() => {
-    if (loaded && !playedSuccessSound) {
-      setPlayedSuccessSound(true);
+    if (loaded && !triggered.current) {
+      triggered.current = true;
       
       // Play ascending success sound
       try {
@@ -81,7 +81,7 @@ export default function CyberLoader() {
         clearTimeout(unmountTimer);
       };
     }
-  }, [loaded, playedSuccessSound]);
+  }, [loaded]);
 
   if (!mounted) return null;
 
