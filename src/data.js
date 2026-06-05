@@ -77,7 +77,7 @@ export const myProjects = [
     desc: "DAIoT Smart Fire Evacuation System // Python & IoT",
     url: "https://github.com/Jay-Naik2526/fire-evacuation-system",
     image: "/img/FireGuard.png",
-    skills: ["Python", "Git"]
+    skills: ["Python", "Git", "IoT"]
   },
   {
     title: "Ambiora Techfest",
@@ -110,7 +110,7 @@ export const myProjects = [
 ];
 
 export const mySkills = [
-  "Python", "C++", "React", "Node.js", "SQL", "MongoDB", "Three.js", "Git", "HTML", "CSS", "Javascript", "Experss.js", "Tailwind CSS"
+  "Python", "C++", "React", "Node.js", "SQL", "MongoDB", "Three.js", "Git", "HTML", "CSS", "Javascript", "Experss.js", "Tailwind CSS", "IoT"
 ];
 export const aboutMe = {
   bio: "I am a coding enthusiast pursuing B.Tech in Computer Science at MPSTME, Shirpur. I love solving complex problems and building scalable web applications.",
