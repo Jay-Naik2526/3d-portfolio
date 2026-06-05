@@ -9,7 +9,6 @@ import AboutPanel from './AboutPanel';
 import ProjectGallery from './ProjectGallery';
 import SkillsCloud from './SkillsCloud';
 import ContactPanel from './ContactPanel';
-import ResumePanel from './ResumePanel';
 import { myProjects } from '../data';
 import InteractiveParticles from './InteractiveParticles';
 
@@ -27,8 +26,9 @@ function SceneRig({ mode, selectedProject }) {
       ? baseRadius + Math.max(0, count - 6) * 0.15
       : baseRadius + Math.max(0, count - 6) * 0.35;
 
-    // Dynamic Z adjustment based on mode, project count, and project selection
-    let targetZ;
+    // Dynamic X and Z adjustment based on mode, project count, and project selection
+    let targetX = 0;
+    let targetZ = 13;
     if (mode === "PROJECTS") {
       if (selectedProject) {
         // Zoom in close to the centered card
@@ -40,15 +40,16 @@ function SceneRig({ mode, selectedProject }) {
         targetZ = isMobile ? mobileZ : desktopZ;
       }
     } else if (mode === "RESUME") {
-      // Zoom close to frame the 3D resume terminal panel
-      targetZ = isMobile ? 12 : 7.8;
+      // Offset camera X position to shift 3D objects left, freeing space for HTML sidebar
+      targetX = isMobile ? 0 : -2.3;
+      targetZ = isMobile ? 12 : 9.5;
     } else {
       targetZ = isMobile ? 20 / aspect : 13; 
     }
     
     const finalZ = Math.min(targetZ, 30);
 
-    camera.position.lerp(new THREE.Vector3(0, 0, finalZ), 0.08); 
+    camera.position.lerp(new THREE.Vector3(targetX, 0, finalZ), 0.08); 
     camera.updateProjectionMatrix();
   });
 
@@ -81,7 +82,7 @@ export default function HologramScene({
       <InteractiveParticles count={1500} />
       
       <HomeHeader visible={mode === "HOME"} /> 
-      <HologramCore visible={mode === "HOME"} /> 
+      <HologramCore visible={mode === "HOME" || mode === "RESUME"} /> 
       
       <AboutPanel visible={mode === "ABOUT"} />
       <ProjectGallery 
@@ -96,7 +97,6 @@ export default function HologramScene({
         setSelectedSkill={setSelectedSkill}
         setMode={setMode}
       />
-      <ResumePanel visible={mode === "RESUME"} />
       <ContactPanel visible={mode === "CONTACT"} />
       
       <gridHelper args={[30, 30, 0x222222, 0x050505]} position={[0, -3, 0]} />
