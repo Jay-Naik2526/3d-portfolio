@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { Loader } from '@react-three/drei'; 
 import HologramScene from './components/HologramScene';
 import UI from './components/UI';
+import CyberLoader from './components/CyberLoader';
 import { playGlitch } from './utils/audio';
 
 const MODES = ["HOME", "ABOUT", "PROJECTS", "SKILLS", "RESUME", "CONTACT"];
@@ -83,14 +83,8 @@ export default function App() {
         setSelectedProject={setSelectedProject}
       />
 
-      {/* 3. THE LOADING SCREEN */}
-      <Loader 
-        containerStyles={{ background: 'black' }} 
-        innerStyles={{ background: '#333', width: '200px', height: '10px' }} 
-        barStyles={{ background: '#00f3ff', height: '10px' }} 
-        dataStyles={{ color: '#00f3ff', fontSize: '14px', fontFamily: 'monospace', fontWeight: 'bold' }} 
-        dataInterpolation={(p) => `SYSTEM LOADING... ${p.toFixed(0)}%`} 
-      />
+      {/* 3. THE CUSTOM CYBERPUNK BOOT LOADING SCREEN */}
+      <CyberLoader />
       
     </div>
   );
